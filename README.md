@@ -1,26 +1,21 @@
-# mt-signal
+# hasil-prompt-mt-signal
 
-## XAUUSD EMA/RSI/ATR + Fibonacci market-structure module
+Repositori **hasil/dokumentasi prompt** - bukan source code utama.
 
-`xauusd_strategy.py` is an independent strategy module (strategy `XAUUSD_EMA_RSI_ATR_STRUCTURE_FIB`). It consumes completed M5 and M15 `Candle` sequences from the caller — no mock feed or broker connection.
+- **Source code utama:** https://github.com/zenolambee/mt-signal (`xauusd_strategy.py`, `test_xauusd_strategy.py`)
+- **Isi repo ini:** ringkasan phase & hasil validasi (`phase/`). Tidak menyimpan API key / secret / `.env`.
 
-```python
-from xauusd_strategy import Candle, StrategyConfig, XAUUSDEmaRsiAtrStructure
+## Phase
 
-strategy = XAUUSDEmaRsiAtrStructure(StrategyConfig())
-result = strategy.evaluate(m5_candles, m15_candles, symbol="XAUUSD", spread=0.25)
-print(result.to_dict())
-# result fields include fib382/fib500/fib618/fib786, activeFibZone, fibExt1272/fibExt1618
+- **Phase 01 - XAUUSD EMA/RSI/ATR + Fibonacci:** `phase/phase-01-xauusd-ema-rsi-atr-fibonacci.md` - `XAUUSD_EMA_RSI_ATR_STRUCTURE_FIB` (EMA20/50 + RSI14 + ATR14 + Market Structure + Fibonacci `0.382/0.500/0.618/0.786`, extension `1.272/1.618`), M15 confirmation / M5 entry, ATR SL `1.5xATR`, RR `1:2`, confidence `100`, 19 test PASS.
+- **Phase 02 - Validasi candle XAUUSD aktual:** `phase/phase-02-candle-validation.md` - pipeline candle, BUY/SELL/NO SIGNAL, look-ahead audit, dataset & limitation.
+
+## Struktur
+
 ```
-
-**Configurable** via `StrategyConfig`: `emaFast/emaSlow`, `rsiPeriod`, `atrPeriod`, `atrSLMultiplier`, `riskReward`, `swingLookback`, `minimumStructureDistance`, `enableSpreadFilter`/`maxSpread`, `minimumConfidence`, ranging/crossover/pullback thresholds, and Fibonacci params `fibRetracementShallow` (0.382), `fibRetracementEntry1` (0.500), `fibRetracementEntry2` (0.618), `fibRetracementInvalidation` (0.786), `fibExtension1` (1.272), `fibExtension2` (1.618).
-
-**Fibonacci anchor** comes from confirmed swing High/Low (completed pivots only). Entry requires price to have visited 0.500–0.618 in the recent pullback window; 0.382 is shallow (confidence boost only); beyond 0.786 invalidates. Extensions 1.272/1.618 are reported for reference; TP remains RR-based. Confidence = M15 20 + M5 15 + Pullback 10 + Fib 15 + RSI 10 + Structure 15 + Candle 10 + Break 5 = 100; high score never overrides a failed mandatory gate.
-
-Signal is emitted only when all gates pass (`M15 trend + M5 alignment + structure + fib gate + RSI + candle confirmation + break + ATR/SL`); otherwise `NO SIGNAL` with a specific reason. Successful signals are recorded in `strategy.emitted` and duplicate candle evaluations are blocked (persist the list if needed across restarts).
-
-Run tests:
-
-```sh
-python -m unittest -v
+hasil-prompt-mt-signal/
+├── README.md
+└── phase/
+    ├── phase-01-xauusd-ema-rsi-atr-fibonacci.md
+    └── phase-02-candle-validation.md
 ```
